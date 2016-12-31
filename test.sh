@@ -30,7 +30,7 @@ function test(){
 
   if [ "$expected" != "$rlt" ]; then
     echo "Test failed $expected extected but got $rlt .."
-    exit
+    exit 1 #fail
   else
     echo "OK"
   fi
