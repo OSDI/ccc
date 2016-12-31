@@ -6,28 +6,26 @@
 #define BUFLEN 256
 
 
-FILE *fp;//デバック用ファイル
+FILE *fp;
 
 void error(char *fmt,...){
   va_list args;
   va_start(args,fmt);
-  vfprintf(stderr,fmt,args);//何故かエラー
+  vfprintf(stderr,fmt,args);
   fprintf(stderr,"\n");
   va_end(args);
   exit(1);
 }
 
 /**
- * @brief 数値用のアセンブラを出力する関数
+ * @brief 
  *
  * @param n
  *
  */
 void compile_number(int n){
-  //一番初めの値はnに入っている
   int c;
   while ((c=getc(stdin))!=EOF){
-    //スペースの場合は無視
     if(isspace(c))
       break;
     if(!isdigit(c))
@@ -36,7 +34,7 @@ void compile_number(int n){
     fprintf(fp,"%d\n",c);
     fprintf(fp,"%d\n",n);
 
-    n=n*10+(c-'0');//桁を上げて足していく
+    n=n*10+(c-'0');
 
     fprintf(fp,"%d\n",n);
   }
@@ -51,16 +49,16 @@ void compile_number(int n){
 void compile_string(int c){
   char buf[BUFLEN];
   int i=0;
-  buf[i++]=c;
 
   for(;;){
     int c=getc(stdin);
     if (c==EOF){
-      /* error("Unterminated string"); */
-      break;
+      error("Unterminated string");
     }
-    else if(c=='\n'){
-      continue;
+    if (c =='"')
+      break;
+    else if(c=='\\'){
+      c = getc(stdin);
     }
 
     buf[i++]=c;
@@ -79,11 +77,29 @@ void compile_string(int c){
 
 }
 
+int read_number(int n){
+  int c;
+  while ((c=getc(stdin)) != EOF){
+
+    if (!isdigit(c)){
+      ungetc(c, stdin);
+      return n;
+    }
+    n = n * 10 +(c-'0');
+  }
+}
+
+
+void compile_expr(int n){
+  n = read_number(n);
+}
+
 void Compile(void){
-  int c=getc(stdin);//標準入力からひとまとまりの複数文字を取得
+  int c=getc(stdin);
 
   if(isdigit(c)){
-    return compile_number(c-'0');//アスキーコードで数字を取得
+    /* return compile_expr(c-'0'); */
+    return compile_number(c-'0');
   }
   else{
     return compile_string(c);

@@ -22,15 +22,16 @@ function compile(){
 
 function test(){
   expected="$1"
-  result="$2"
-  echo $result
-  compile "$expected"
+  exr="$2"
+  compile "$exr"
 
   rlt="`./tmp.out`" #実行ファイルを実行して、標準出力を取得
 
-  if [ "$rlt" != "$expected" ]; then
-    echo "Test failed $expected extected but got $rlt"
+  if [ "$expected" != "$rlt" ]; then
+    echo "Test failed $expected extected but got $rlt .."
     exit
+  else
+    echo "OK"
   fi
 
 }
@@ -41,7 +42,12 @@ make -s ccc
 test 0 0
 test 42 42 
 
-test abs '"abc"'
+# test 3 '1+2'
+test 3 3 
 
-rm -f tmp.out tmp.s
+test a a
+test abs '"abc"' 
+
+
+# rm -f tmp.out tmp.s
 echo "All tests passed"
