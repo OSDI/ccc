@@ -7,7 +7,7 @@ function compile(){
   #コンパイルチェック
   if [ $? -ne 0 ]; then
     echo "Failed to comile $1"
-    exit
+    exit 1
   fi
 
   #tmp.outという実行ファイルを作る driver.cとtmp.cを使って
@@ -15,7 +15,7 @@ function compile(){
 
   if [ $? -ne 0 ]; then
     echo "GCC failed"
-    exit
+    exit 1
   fi
 
 }
