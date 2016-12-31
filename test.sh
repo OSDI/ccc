@@ -41,7 +41,7 @@ make -s ccc
 
 #test
 test 0 0
-test 41 42 
+test 42 42 
 
 # test 3 '1+2'
 test 3 3 
