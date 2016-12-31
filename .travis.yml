@@ -1,2 +1,2 @@
 script:
-  - sh -e test.sh
+  - bash test.sh
