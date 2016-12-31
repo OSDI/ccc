@@ -23,6 +23,7 @@ function compile(){
 function test(){
   expected="$1"
   exr="$2"
+  echo "test $1 $2"
   compile "$exr"
 
   rlt="`./tmp.out`" #実行ファイルを実行して、標準出力を取得
@@ -45,8 +46,8 @@ test 42 42
 # test 3 '1+2'
 test 3 3 
 
-test a a
-test abs '"abc"' 
+test a '"a"'
+test bbc '"bbc"' 
 
 
 # rm -f tmp.out tmp.s

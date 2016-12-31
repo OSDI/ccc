@@ -46,19 +46,18 @@ void compile_number(int n){
       "ret\n",n);
 }
 
-void compile_string(int c){
+void compile_string(){
   char buf[BUFLEN];
   int i=0;
 
   for(;;){
     int c=getc(stdin);
+    fprintf(fp,"%d\n",c);
     if (c==EOF){
       error("Unterminated string");
     }
-    if (c =='"')
-      break;
-    else if(c=='\\'){
-      c = getc(stdin);
+    if (c =='"'){
+      break;//finish string
     }
 
     buf[i++]=c;
@@ -74,6 +73,7 @@ void compile_string(int c){
       "stringfn:\n\t"
       "lea .mydata(%%rip), %%rax\n\t"
       "ret\n",buf);
+  exit(0);
 
 }
 
@@ -102,7 +102,7 @@ void Compile(void){
     return compile_number(c-'0');
   }
   else{
-    return compile_string(c);
+    return compile_string();
   }
 
 
