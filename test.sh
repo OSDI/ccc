@@ -43,12 +43,20 @@ make -s ccc
 test 0 0
 test 42 42 
 
-# test 3 '1+2'
 test 3 3 
 
 test a '"a"'
 test bbc '"bbc"' 
 
+test 1+2 '"1+2"'
+
+test 2 '1+1'
+test 0 '1-1'
+test 2 '0+2'
+
+test 5 '1 + 4'
+test 2 '3- 1'
+test 8 '5 +3'
 
 # rm -f tmp.out tmp.s
 echo "All tests passed"

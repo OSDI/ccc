@@ -5,7 +5,6 @@
 
 #define BUFLEN 256
 
-
 FILE *fp;
 
 void error(char *fmt,...){
@@ -17,42 +16,12 @@ void error(char *fmt,...){
   exit(1);
 }
 
-/**
- * @brief 
- *
- * @param n
- *
- */
-void compile_number(int n){
-  int c;
-  while ((c=getc(stdin))!=EOF){
-    if(isspace(c))
-      break;
-    if(!isdigit(c))
-      error("Invalid character in number:'%c'",c);
-
-    fprintf(fp,"%d\n",c);
-    fprintf(fp,"%d\n",n);
-
-    n=n*10+(c-'0');
-
-    fprintf(fp,"%d\n",n);
-  }
-
-  printf("\t.text\n\t"
-      ".global intfn\n"
-      "intfn:\n\t"
-      "mov $%d, %%rax\n\t"
-      "ret\n",n);
-}
-
 void compile_string(){
   char buf[BUFLEN];
   int i=0;
 
   for(;;){
     int c=getc(stdin);
-    fprintf(fp,"%d\n",c);
     if (c==EOF){
       error("Unterminated string");
     }
@@ -64,6 +33,7 @@ void compile_string(){
     if(i==BUFLEN-1) error("String too long");
   }
 
+  //generate assembler
   buf[i]='\0';
   printf("\t.data\n"
       ".mydata:\n\t"
@@ -74,14 +44,13 @@ void compile_string(){
       "lea .mydata(%%rip), %%rax\n\t"
       "ret\n",buf);
   exit(0);
-
 }
 
 int read_number(int n){
   int c;
   while ((c=getc(stdin)) != EOF){
-
     if (!isdigit(c)){
+      //数字ではないものが来たら、stdinに戻して数字を返す
       ungetc(c, stdin);
       return n;
     }
@@ -89,17 +58,55 @@ int read_number(int n){
   }
 }
 
+void skip_space(void){
+  int c;
+  while ((c = getc(stdin)) !=EOF){
+    if (isspace(c))
+      continue;
+    ungetc(c,stdin);
+    return;
+  }
+}
+
+void compile_expr2(){
+  for(;;){
+    skip_space();
+    int c = getc(stdin);
+    if (c == EOF){
+      printf("ret\n");
+      exit(0);
+    }
+
+    skip_space();
+    char *op;
+    if (c=='+') op ="add";
+    else if (c == '-') op = "sub";
+    else error("Operator expected, but got '%c'", c);
+    skip_space();
+
+    c = getc(stdin);
+    if (!isdigit(c))
+      error("Number expected, but got '%c'", c);
+    printf("%s $%d, %%rax\n\t", op, read_number(c - '0'));
+
+  }
+   
+}
 
 void compile_expr(int n){
   n = read_number(n);
+  printf(".text\n\t"
+      ".global intfn\n"
+      "intfn:\n\t"
+      "mov $%d, %%rax\n\t", n);
+  compile_expr2();
 }
 
-void Compile(void){
+void compile(void){
   int c=getc(stdin);
 
   if(isdigit(c)){
-    /* return compile_expr(c-'0'); */
-    return compile_number(c-'0');
+    return compile_expr(c-'0');
   }
   else{
     return compile_string();
@@ -111,7 +118,7 @@ void Compile(void){
 
 int main(int argc, char **argv){
   fp = fopen( "debug.txt", "w" );
-  Compile();
+  compile();
   fclose(fp);
   return 0;
 }
