@@ -6,10 +6,32 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <string.h>
 
 #define BUFLEN 256
 
 FILE *fp;
+
+enum {
+  AST_OP_PLUS,
+  AST_OP_MINUS,
+  AST_INT,
+  AST_STR,
+};
+
+
+typedef struct Ast {
+  int type;
+  union {
+    int ival;
+    char *sval;
+    struct {
+      struct Ast *left;
+      struct Ast *right;
+    };
+  };
+
+} Ast;
 
 void error(char *fmt,...){
   va_list args;
@@ -124,7 +146,14 @@ void compile(void){
 
 int main(int argc, char **argv){
   fp = fopen( "debug.txt", "w" );
-  compile();
+
+  if (argc > 1 && !strcmp(argv[1], "-a")){
+    //print_ast(ast);
+  }
+  else{
+    compile();
+  }
+
   fclose(fp);
   return 0;
 }
