@@ -40,28 +40,40 @@ function fail_test(){
 
 }
 
+function assert_equal {
+  if [ "$1" != "$2" ]; then
+    echo "Test failed $2 extected but got $1 .."
+    exit 1 #fail
+  else:
+    echo "OK"
+  fi
+}
+
+function test_ast {
+  result="$(echo "$2" | ./ccc -a)"
+  if [ $? -ne 0 ]; then
+    echo "Failed to comile $1"
+    exit 1
+  fi
+  assert_equal "$result" "$1"
+}
 
 
 function test(){
   expected="$1"
   exr="$2"
   echo "test $1 $2"
-  compile "$exr"
-
-  rlt="`./tmp.out`" #実行ファイルを実行して、標準出力を取得
-
-  if [ "$expected" != "$rlt" ]; then
-    echo "Test failed $expected extected but got $rlt .."
-    exit 1 #fail
-  else
-    echo "OK"
-  fi
-
+  compile "$2"
+  assert_equal "$(./tmp.out)" "$1"
 }
 
 make -s ccc
 
 #test
+
+# test_ast '1' '1'
+# test_ast '(+ (- (+ 1 2) 3) 4)'
+
 test 0 0
 test 42 42 
 
@@ -75,6 +87,8 @@ test 1+2 '"1+2"'
 test 2 '1+1'
 test 0 '1-1'
 test 2 '0+2'
+test 10 '1+2+3+4'
+test 2 '1+2+3-4'
 
 test 5 '1 + 4'
 test 2 '3- 1'
