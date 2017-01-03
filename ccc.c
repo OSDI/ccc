@@ -1,3 +1,7 @@
+/*
+ * compact c compiler
+ *
+ **/
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -56,6 +60,8 @@ int read_number(int n){
     }
     n = n * 10 +(c-'0');
   }
+
+  return 0; //not happen
 }
 
 void skip_space(void){

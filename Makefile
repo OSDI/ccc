@@ -1,3 +1,5 @@
+CFLAGS=-Wall
+
 ccc: ccc.o
 
 clean:
