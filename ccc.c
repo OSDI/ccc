@@ -33,6 +33,9 @@ typedef struct Ast {
 
 } Ast;
 
+Ast *read_prim(void);
+void emit_binop(Ast *ast);
+
 void error(char *fmt,...){
   va_list args;
   va_start(args,fmt);
@@ -72,13 +75,28 @@ void compile_string(){
   exit(0);
 }
 
-int read_number(int n){
-  int c;
-  while ((c=getc(stdin)) != EOF){
+Ast *make_ast_op(int type, Ast *left, Ast *right){
+  Ast *r = malloc(sizeof(Ast));
+  r->type=type;
+  r->left=left;
+  r->right=right;
+  return r;
+}
+
+Ast *make_ast_int(int val){
+  Ast *r = malloc(sizeof(Ast));
+  r->type=AST_INT;
+  r->ival=val;
+  return r;
+}
+
+Ast *read_number(int n){
+  for (;;){
+    int c = getc(stdin);
     if (!isdigit(c)){
       //数字ではないものが来たら、stdinに戻して数字を返す
       ungetc(c, stdin);
-      return n;
+      return make_ast_int(n);
     }
     n = n * 10 +(c-'0');
   }
@@ -96,62 +114,96 @@ void skip_space(void){
   }
 }
 
-void compile_expr2(){
-  for(;;){
+Ast *read_expr2(Ast *left){
     skip_space();
     int c = getc(stdin);
     if (c == EOF){
-      printf("ret\n");
-      exit(0);
+      return left;
     }
-
-    skip_space();
-    char *op;
-    if (c=='+') op ="add";
-    else if (c == '-') op = "sub";
+    int op;
+    if (c == '+') op =AST_OP_PLUS;
+    else if (c=='-') op =AST_OP_MINUS;
     else error("Operator expected, but got '%c'", c);
     skip_space();
-
-    c = getc(stdin);
-    if (!isdigit(c))
-      error("Number expected, but got '%c'", c);
-    printf("%s $%d, %%rax\n\t", op, read_number(c - '0'));
-
-  }
-   
+    Ast *right = read_prim();
+    return read_expr2(make_ast_op(op, left, right));
 }
 
-void compile_expr(int n){
-  n = read_number(n);
-  printf(".text\n\t"
-      ".global intfn\n"
-      "intfn:\n\t"
-      "mov $%d, %%rax\n\t", n);
-  compile_expr2();
-}
-
-void compile(void){
+Ast *read_prim(void){
   int c=getc(stdin);
-
   if(isdigit(c)){
-    return compile_expr(c-'0');
+    return read_number(c-'0');
+  }
+  /* else if (c == '"'){ */
+    /* return compile_string(); */
+  /* } */
+  error("Don't know how to handle '%c'",c);
+  return 0;
+}
+
+void ensure_intexpr(Ast *ast) {
+  if (ast->type != AST_OP_PLUS &&
+      ast->type != AST_OP_MINUS &&
+      ast->type != AST_INT){
+    error("integer or binary operator expected");
+  }
+}
+
+void emit_intexpr(Ast *ast){
+  ensure_intexpr(ast);
+  if (ast->type == AST_INT){
+    printf("mov $%d, %%eax\n\t", ast->ival);
+  }
+  else if(ast->type == AST_OP_MINUS ||
+          ast->type == AST_OP_PLUS){
+    emit_binop(ast);
   }
   else{
-    return compile_string();
+    error("unknown ast type %d", ast->type);
   }
-
-
-  error("Don't know how to handle '%c'",c);
 }
+
+void emit_binop(Ast *ast){
+  char *op;
+  if(ast->type == AST_OP_PLUS){
+    op= "add";
+  }
+  else if(ast->type==AST_OP_MINUS){
+    op= "sub";
+  }
+  else{
+    error("invalid operand");
+  }
+  emit_intexpr(ast->left);
+  printf("mov %%eax, %%ebx\n\t");
+  emit_intexpr(ast->right);
+  printf("%s %%ebx, %%eax\n\t",op);
+}
+
+Ast *read_expr(void){
+  Ast *left = read_prim();
+  return read_expr2(left);
+}
+
+void compile(Ast *ast){
+  printf(".text\n\t"
+      ".global intfn\n"
+      "intfn:\n\t");
+  emit_intexpr(ast);
+  printf("ret\n");
+}
+
 
 int main(int argc, char **argv){
   fp = fopen( "debug.txt", "w" );
+
+  Ast *ast = read_expr();
 
   if (argc > 1 && !strcmp(argv[1], "-a")){
     //print_ast(ast);
   }
   else{
-    compile();
+    compile(ast);
   }
 
   fclose(fp);
