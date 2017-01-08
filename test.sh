@@ -79,10 +79,10 @@ test 42 42
 
 test 3 3 
 
-# test a '"a"'
-# test bbc '"bbc"' 
+test a '"a"'
+test bbc '"bbc"' 
 
-# test 1+2 '"1+2"'
+test 1+2 '"1+2"'
 
 test 2 '1+1'
 # test 0 '1-1'

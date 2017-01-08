@@ -45,7 +45,14 @@ void error(char *fmt,...){
   exit(1);
 }
 
-void compile_string(){
+Ast *make_ast_str(char *str){
+  Ast *r = malloc(sizeof(Ast));
+  r->type=AST_STR;
+  r->sval=str;
+  return r;
+}
+
+Ast *read_string(){
   char buf[BUFLEN];
   int i=0;
 
@@ -64,15 +71,7 @@ void compile_string(){
 
   //generate assembler
   buf[i]='\0';
-  printf("\t.data\n"
-      ".mydata:\n\t"
-      ".string \"%s\"\n\t"
-      ".text\n\t"
-      ".global stringfn\n"
-      "stringfn:\n\t"
-      "lea .mydata(%%rip), %%rax\n\t"
-      "ret\n",buf);
-  exit(0);
+  return make_ast_str(buf);
 }
 
 Ast *make_ast_op(int type, Ast *left, Ast *right){
@@ -134,9 +133,9 @@ Ast *read_prim(void){
   if(isdigit(c)){
     return read_number(c-'0');
   }
-  /* else if (c == '"'){ */
-    /* return compile_string(); */
-  /* } */
+  else if (c == '"'){
+    return read_string();
+  }
   error("Don't know how to handle '%c'",c);
   return 0;
 }
@@ -185,12 +184,41 @@ Ast *read_expr(void){
   return read_expr2(left);
 }
 
+void print_quote(char *p){
+  while(*p){
+    if (*p=='\"' || *p == '\\')
+      printf("\\");
+    printf("%c",*p);
+    p++;
+  }
+}
+
+void emit_string(Ast *ast) {
+  printf("\t.data\n"
+        ".mydata:\n\t"
+        ".string \"");
+  print_quote(ast->sval);
+  printf("\"\n\t"
+      ".text\n\t"
+      ".global stringfn\n"
+      "stringfn:\n\t"
+      "lea .mydata(%%rip), %%rax\n\t"
+      "ret\n"
+      );
+  return;
+}
+
 void compile(Ast *ast){
-  printf(".text\n\t"
-      ".global intfn\n"
-      "intfn:\n\t");
-  emit_intexpr(ast);
-  printf("ret\n");
+  if (ast->type == AST_STR){
+    emit_string(ast);
+  }
+  else{
+    printf(".text\n\t"
+        ".global intfn\n"
+        "intfn:\n\t");
+    emit_intexpr(ast);
+    printf("ret\n");
+  }
 }
 
 
