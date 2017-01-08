@@ -53,7 +53,7 @@ Ast *make_ast_str(char *str){
 }
 
 Ast *read_string(){
-  char buf[BUFLEN];
+  char *buf=malloc(BUFLEN);
   int i=0;
 
   for(;;){
