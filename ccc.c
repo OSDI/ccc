@@ -221,6 +221,33 @@ void compile(Ast *ast){
   }
 }
 
+void print_ast(Ast *ast){
+  switch(ast->type){
+    case AST_OP_PLUS:
+      printf("(+ ");
+      print_ast(ast->left);
+      printf(" ");
+      print_ast(ast->right);
+      printf(")");
+      break;
+    case AST_OP_MINUS:
+      printf("(- ");
+      print_ast(ast->left);
+      printf(" ");
+      print_ast(ast->right);
+      printf(")");
+      break;
+    case AST_INT:
+      printf("%d", ast->ival);
+      break;
+    case AST_STR:
+      print_quote(ast->sval);
+      break;
+    default:
+      error("shold not reach hear");
+  }
+}
+
 
 int main(int argc, char **argv){
   fp = fopen( "debug.txt", "w" );
@@ -228,7 +255,7 @@ int main(int argc, char **argv){
   Ast *ast = read_expr();
 
   if (argc > 1 && !strcmp(argv[1], "-a")){
-    //print_ast(ast);
+    print_ast(ast);
   }
   else{
     compile(ast);

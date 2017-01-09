@@ -50,6 +50,7 @@ function assert_equal {
 }
 
 function test_ast {
+  echo "test ast $1 $2"
   result="$(echo "$2" | ./ccc -a)"
   if [ $? -ne 0 ]; then
     echo "Failed to comile $1"
@@ -60,19 +61,23 @@ function test_ast {
 
 
 function test(){
-  expected="$1"
   exr="$2"
   echo "test $1 $2"
   compile "$2"
   assert_equal "$(./tmp.out)" "$1"
 }
 
+
 make -s ccc
 
 #test
 
-# test_ast '1' '1'
-# test_ast '(+ (- (+ 1 2) 3) 4)'
+test_ast '1' '1'
+test_ast '100' '100'
+test_ast '(+ 1 2)' '1+2'
+test_ast '(+ (+ 1 2) 3)' '1+2+3'
+test_ast '(+ (- (+ 1 2) 3) 4)' '1+2-3+4'
+test_ast 'neko' '"neko"'
 
 test 0 0
 test 42 42 
