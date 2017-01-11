@@ -105,7 +105,7 @@ Ast *read_number(int n){
 
 void skip_space(void){
   int c;
-  while ((c = getc(stdin)) !=EOF){
+  while ((c = getc(stdin)) != EOF){
     if (isspace(c))
       continue;
     ungetc(c,stdin);
@@ -113,19 +113,25 @@ void skip_space(void){
   }
 }
 
-Ast *read_expr2(Ast *left){
+Ast *read_expr2(int prec){
     skip_space();
-    int c = getc(stdin);
-    if (c == EOF){
-      return left;
+    Ast *ast = read_prim();
+
+    for(;;){
+      skip_space();
+      int c = getc(stdin);
+      if (c == EOF){
+        return ast;
+      }
+      int prec2=1;
+      if (prec2 < prec){
+        ungetc(c, stdin);
+        return ast;
+      }
+      ast = make_ast_op(c, ast, read_expr2(prec2+1));
     }
-    int op;
-    if (c == '+') op =AST_OP_PLUS;
-    else if (c=='-') op =AST_OP_MINUS;
-    else error("Operator expected, but got '%c'", c);
-    skip_space();
-    Ast *right = read_prim();
-    return read_expr2(make_ast_op(op, left, right));
+
+    return ast;
 }
 
 Ast *read_prim(void){
@@ -141,11 +147,10 @@ Ast *read_prim(void){
 }
 
 void ensure_intexpr(Ast *ast) {
-  if (ast->type != AST_OP_PLUS &&
-      ast->type != AST_OP_MINUS &&
-      ast->type != AST_INT){
-    error("integer or binary operator expected");
-  }
+  if (ast->type == '+') return;
+  else if (ast->type == '-') return;
+  else if (ast->type == AST_INT) return;
+  else error("integer or binary operator expected");
 }
 
 void emit_intexpr(Ast *ast){
@@ -153,26 +158,26 @@ void emit_intexpr(Ast *ast){
   if (ast->type == AST_INT){
     printf("mov $%d, %%eax\n\t", ast->ival);
   }
-  else if(ast->type == AST_OP_MINUS ||
-          ast->type == AST_OP_PLUS){
-    emit_binop(ast);
-  }
   else{
-    error("unknown ast type %d", ast->type);
+    emit_binop(ast);
   }
 }
 
 void emit_binop(Ast *ast){
   char *op;
-  if(ast->type == AST_OP_PLUS){
+  if(ast->type == '+'){
     op= "add";
   }
-  else if(ast->type==AST_OP_MINUS){
+  else if(ast->type== '-'){
     op= "sub";
   }
+  /* else if(ast->type==AST_OP_MINUS){ */
+    /* op= "sub"; */
+  /* } */
   else{
     error("invalid operand");
   }
+
   emit_intexpr(ast->left);
   printf("mov %%eax, %%ebx\n\t");
   emit_intexpr(ast->right);
@@ -180,8 +185,7 @@ void emit_binop(Ast *ast){
 }
 
 Ast *read_expr(void){
-  Ast *left = read_prim();
-  return read_expr2(left);
+  return read_expr2(0);
 }
 
 void print_quote(char *p){
@@ -223,20 +227,6 @@ void compile(Ast *ast){
 
 void print_ast(Ast *ast){
   switch(ast->type){
-    case AST_OP_PLUS:
-      printf("(+ ");
-      print_ast(ast->left);
-      printf(" ");
-      print_ast(ast->right);
-      printf(")");
-      break;
-    case AST_OP_MINUS:
-      printf("(- ");
-      print_ast(ast->left);
-      printf(" ");
-      print_ast(ast->right);
-      printf(")");
-      break;
     case AST_INT:
       printf("%d", ast->ival);
       break;
@@ -244,7 +234,11 @@ void print_ast(Ast *ast){
       print_quote(ast->sval);
       break;
     default:
-      error("shold not reach hear");
+      printf("(%c ", ast->type);
+      print_ast(ast->left);
+      printf(" ");
+      print_ast(ast->right);
+      printf(")");
   }
 }
 
