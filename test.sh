@@ -78,6 +78,10 @@ test_ast '(+ 1 2)' '1+2'
 test_ast '(+ (+ 1 2) 3)' '1+2+3'
 test_ast '(+ (- (+ 1 2) 3) 4)' '1+2-3+4'
 test_ast 'neko' '"neko"'
+test_ast '(+ (+ 1 (* 2 3)) 4)' '1+2*3+4'
+test_ast '(+ (* 1 2) (* 3 4))' '1*2+3*4'
+test_ast '(+ (/ 4 2) (/ 6 3))' '4/2+6/3'
+test_ast '(/ (/ 24 2) 4)' '24/2/4'
 
 test 0 0
 test 42 42 
@@ -103,6 +107,9 @@ test 6 '2+2*2'
 test 14 '1*2+3*4'
 test 13 '5*2+3'
 test 7 '2*3+1'
+test 2 '4/2'
+test 4 '6/2+1'
+test 5 '6/2+1*2'
 
 fail_test '"abc'
 fail_test '0abc'

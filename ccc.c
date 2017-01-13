@@ -171,6 +171,7 @@ void ensure_intexpr(Ast *ast) {
   if (ast->type == '+') return;
   else if (ast->type == '-') return;
   else if (ast->type == '*') return;
+  else if (ast->type == '/') return;
   else if (ast->type == AST_INT) return;
   else error("integer or binary operator expected");
 }
@@ -196,6 +197,9 @@ void emit_binop(Ast *ast){
   else if(ast->type== '*'){
     op= "imul";
   }
+  else if(ast->type == '/'){
+    //do nothing
+  }
   else{
     error("invalid operand");
   }
@@ -203,8 +207,17 @@ void emit_binop(Ast *ast){
   emit_intexpr(ast->left);
   printf("push %%rax\n\t");
   emit_intexpr(ast->right);
-  printf("pop %%rbx\n\t");
-  printf("%s %%ebx, %%eax\n\t", op);
+
+  if (ast->type == '/'){
+    printf("mov %%eax, %%ebx\n\t");
+    printf("pop %%rax\n\t");
+    printf("mov $0, %%edx\n\t");
+    printf("idiv %%ebx\n\t");
+  }
+  else{
+    printf("pop %%rbx\n\t");
+    printf("%s %%ebx, %%eax\n\t", op);
+  }
 }
 
 Ast *read_expr(void){
