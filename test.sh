@@ -90,14 +90,19 @@ test bbc '"bbc"'
 test 1+2 '"1+2"'
 
 test 2 '1+1'
-# test 0 '1-1'
+test 0 '1-1'
 test 2 '0+2'
 test 10 '1+2+3+4'
 test 4 '1+2-3+4'
 
 test 5 '1 + 4'
-# test 2 '3- 1'
 test 8 '5 +3'
+
+test 2 '2*1'
+test 6 '2+2*2'
+test 14 '1*2+3*4'
+test 13 '5*2+3'
+test 7 '2*3+1'
 
 fail_test '"abc'
 fail_test '0abc'

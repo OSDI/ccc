@@ -13,8 +13,6 @@
 FILE *fp;
 
 enum {
-  AST_OP_PLUS,
-  AST_OP_MINUS,
   AST_INT,
   AST_STR,
 };
@@ -113,6 +111,27 @@ void skip_space(void){
   }
 }
 
+int get_priority(char c){
+
+  if(c == '+'){
+    return 1;
+  }
+  else if(c == '-'){
+    return 1;
+  }
+  else if(c == '*'){
+    return 2;
+  }
+  else if(c == '/'){
+    return 2;
+  }
+  else{
+    error("Unknown binary operator");
+  }
+  
+  return 0;
+}
+
 Ast *read_expr2(int prec){
     skip_space();
     Ast *ast = read_prim();
@@ -123,11 +142,13 @@ Ast *read_expr2(int prec){
       if (c == EOF){
         return ast;
       }
-      int prec2=1;
+      int prec2=get_priority(c);
       if (prec2 < prec){
         ungetc(c, stdin);
         return ast;
       }
+
+      skip_space();
       ast = make_ast_op(c, ast, read_expr2(prec2+1));
     }
 
@@ -149,6 +170,7 @@ Ast *read_prim(void){
 void ensure_intexpr(Ast *ast) {
   if (ast->type == '+') return;
   else if (ast->type == '-') return;
+  else if (ast->type == '*') return;
   else if (ast->type == AST_INT) return;
   else error("integer or binary operator expected");
 }
@@ -171,17 +193,18 @@ void emit_binop(Ast *ast){
   else if(ast->type== '-'){
     op= "sub";
   }
-  /* else if(ast->type==AST_OP_MINUS){ */
-    /* op= "sub"; */
-  /* } */
+  else if(ast->type== '*'){
+    op= "imul";
+  }
   else{
     error("invalid operand");
   }
 
   emit_intexpr(ast->left);
-  printf("mov %%eax, %%ebx\n\t");
+  printf("push %%rax\n\t");
   emit_intexpr(ast->right);
-  printf("%s %%ebx, %%eax\n\t",op);
+  printf("pop %%rbx\n\t");
+  printf("%s %%ebx, %%eax\n\t", op);
 }
 
 Ast *read_expr(void){
