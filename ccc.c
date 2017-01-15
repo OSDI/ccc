@@ -114,19 +114,19 @@ void skip_space(void){
 int get_priority(char c){
 
   if(c == '+'){
-    return 1;
+    return 2;
   }
   else if(c == '-'){
-    return 1;
+    return 2;
   }
   else if(c == '*'){
-    return 2;
+    return 3;
   }
   else if(c == '/'){
-    return 2;
+    return 3;
   }
   else{
-    error("Unknown binary operator");
+    return -1;
   }
   
   return 0;
@@ -135,6 +135,7 @@ int get_priority(char c){
 Ast *read_expr2(int prec){
     skip_space();
     Ast *ast = read_prim();
+    if (!ast) return NULL;
 
     for(;;){
       skip_space();
@@ -162,6 +163,9 @@ Ast *read_prim(void){
   }
   else if (c == '"'){
     return read_string();
+  }
+  else if (c==EOF){
+    return NULL;
   }
   error("Don't know how to handle '%c'",c);
   return 0;
@@ -221,7 +225,14 @@ void emit_binop(Ast *ast){
 }
 
 Ast *read_expr(void){
-  return read_expr2(0);
+  Ast *r = read_expr2(0);
+  if(!r) return NULL;
+  skip_space();
+  int c = getc(stdin);
+  if (c != ';'){
+    error("Unterminated experssion");
+  }
+  return r;
 }
 
 void print_quote(char *p){
@@ -281,14 +292,24 @@ void print_ast(Ast *ast){
 
 int main(int argc, char **argv){
   fp = fopen( "debug.txt", "w" );
-
-  Ast *ast = read_expr();
-
-  if (argc > 1 && !strcmp(argv[1], "-a")){
-    print_ast(ast);
+  int want_ast=(argc > 1 && !strcmp(argv[1], "-a"));
+  if(!want_ast){
+    printf(".text\n\t"
+      ".global mymain\n"
+      "mymain:\n\t");
   }
-  else{
-    compile(ast);
+  /* for(;;){ */
+    Ast *ast = read_expr();
+    /* if(!ast) break; */
+    if(want_ast){
+      print_ast(ast);
+    }
+    else{
+      compile(ast);
+    }
+  /* } */
+  if(!want_ast){
+    printf("ret\n");
   }
 
   fclose(fp);

@@ -72,45 +72,45 @@ make -s ccc
 
 #test
 
-test_ast '1' '1'
-test_ast '100' '100'
-test_ast '(+ 1 2)' '1+2'
-test_ast '(+ (+ 1 2) 3)' '1+2+3'
-test_ast '(+ (- (+ 1 2) 3) 4)' '1+2-3+4'
-test_ast 'neko' '"neko"'
-test_ast '(+ (+ 1 (* 2 3)) 4)' '1+2*3+4'
-test_ast '(+ (* 1 2) (* 3 4))' '1*2+3*4'
-test_ast '(+ (/ 4 2) (/ 6 3))' '4/2+6/3'
-test_ast '(/ (/ 24 2) 4)' '24/2/4'
+test_ast '1' '1;'
+test_ast '100' '100;'
+test_ast '(+ 1 2)' '1+2;'
+test_ast '(+ (+ 1 2) 3)' '1+2+3;'
+test_ast '(+ (- (+ 1 2) 3) 4)' '1+2-3+4;'
+test_ast 'neko' '"neko";'
+test_ast '(+ (+ 1 (* 2 3)) 4)' '1+2*3+4;'
+test_ast '(+ (* 1 2) (* 3 4))' '1*2+3*4;'
+test_ast '(+ (/ 4 2) (/ 6 3))' '4/2+6/3;'
+test_ast '(/ (/ 24 2) 4)' '24/2/4;'
 
-test 0 0
-test 42 42 
+test 0 '0;'
+test 42 '42;' 
+test 3 '3;'
 
-test 3 3 
+# test a '"a"'
+# test bbc '"bbc"' 
 
-test a '"a"'
-test bbc '"bbc"' 
+# test 1+2 '"1+2"'
 
-test 1+2 '"1+2"'
+test 2 '1+1;'
+test 0 '1-1;'
+test 2 '0+2;'
+test 10 '1+2+3+4;'
+test 4 '1+2-3+4;'
 
-test 2 '1+1'
-test 0 '1-1'
-test 2 '0+2'
-test 10 '1+2+3+4'
-test 4 '1+2-3+4'
+test 5 '1 + 4;'
+test 8 '5 +3;'
 
-test 5 '1 + 4'
-test 8 '5 +3'
+test 2 '2*1;'
+test 6 '2+2*2;'
+test 14 '1*2+3*4;'
+test 13 '5*2+3;'
+test 7 '2*3+1;'
+test 2 '4/2;'
+test 4 '6/2+1;'
+test 5 '6/2+1*2;'
 
-test 2 '2*1'
-test 6 '2+2*2'
-test 14 '1*2+3*4'
-test 13 '5*2+3'
-test 7 '2*3+1'
-test 2 '4/2'
-test 4 '6/2+1'
-test 5 '6/2+1*2'
-
+fail_test '2'
 fail_test '"abc'
 fail_test '0abc'
 fail_test '1+'
